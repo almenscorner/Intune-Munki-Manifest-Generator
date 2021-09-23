@@ -38,7 +38,7 @@ Update the following parameters with info from your environment:
 - clientsecret = "" (from app registration)
 - azure_connection_string = ""
 - container_name = "munki" (if your private container is not named munki)
-If more department groups are needed, just add more parameters and add it to the for look at the end:
+If more department groups are needed, just add more parameters and add it to the for loop at the end:
 - department_X_device_ids = []
 - department_X_group_id = ""
 - department_X_manifest_name = ""
