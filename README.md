@@ -1,12 +1,12 @@
 # Intune-Munki-Manifest-Generator
 A Python helper to generate Munki manifests for devices managed in Intune
 
-# Description
+## Description
 This script is meant to help generate manifests for devices to use with Munki.
 It will generate a manifest with the name of the device serial number and upload
 to Azure Storage where the munki repo is.
 
-# Configuration
+## Configuration
 I set this up to be run from an Azure Automation Account on a schedule, to do that
 you have to import the following Python 3 packages:
 - azure_core
@@ -35,13 +35,14 @@ Update the following parameters with info from your environment:
 - clientsecret = "" (from app registration)
 - azure_connection_string = ""
 - container_name = "munki" (if your private container is not named munki)
+
 If more department groups are needed, just add more parameters and add it to the for look at the end:
 - department_X_device_ids = []
 - department_X_group_id = ""
 - department_X_manifest_name = ""
 - department_X_members = makeapirequest(group_endpoint + "/" + department_X_group_id + "/members",token)
 
-# More info
+## More info
 If want to see the setup step by step, please see this blog post:
 LINK
 Release notes:
