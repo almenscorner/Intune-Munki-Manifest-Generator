@@ -30,7 +30,7 @@ Manifest content
 	<key>optional_installs</key>
 	<array/>
 	<key>serialnumber</key>
-	<string>C07NKA3UG1HV</string>
+	<string>C07XXXXXXXXX</string>
 	<key>user</key>
 	<string>almen@almens365.onmicrosoft.com</string>
 </dict>
