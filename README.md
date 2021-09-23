@@ -1,6 +1,9 @@
 # Intune-Munki-Manifest-Generator
 A Python helper to generate Munki manifests for devices managed in Intune
 
+## Example run output
+![Screenshot 2021-09-23 at 17 04 56](https://user-images.githubusercontent.com/78877636/134533249-a173d2f1-1723-400d-853c-1eef556f75e8.png)
+
 ## Description
 This script is meant to help generate manifests for devices to use with Munki.
 It will generate a manifest with the name of the device serial number and upload
@@ -45,6 +48,8 @@ If more department groups are needed, just add more parameters and add it to the
 ## More info
 If want to see the setup step by step, please see this blog post:
 LINK
+
 Release notes:
 Version 1.0: 2021-09-24 - Original published version.
+
 Many thanks to Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
