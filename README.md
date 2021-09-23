@@ -59,6 +59,7 @@ follwing app permissions granted:
 - Directory.Read.All
 - Group.Read.All
 - GroupMember.Read.All
+
 You also have to generate a connection string for your storage account.
 
 Update the following parameters with info from your environment:
