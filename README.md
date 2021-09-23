@@ -3,10 +3,12 @@ A Python helper to generate Munki manifests for devices managed in Intune
 
 ## Example run output
 Azure Automation Output
-[Screenshot 2021-09-23 at 17 04 56](https://user-images.githubusercontent.com/78877636/134533249-a173d2f1-1723-400d-853c-1eef556f75e8.png)
+
+![Screenshot 2021-09-23 at 17 04 56](https://user-images.githubusercontent.com/78877636/134533249-a173d2f1-1723-400d-853c-1eef556f75e8.png)
 
 Repository manifests
-[Screenshot 2021-09-23 at 17 10 59](https://user-images.githubusercontent.com/78877636/134534149-76b1df1d-fd68-4724-b2e2-98ae8a881079.png)
+
+![Screenshot 2021-09-23 at 17 10 59](https://user-images.githubusercontent.com/78877636/134534149-76b1df1d-fd68-4724-b2e2-98ae8a881079.png)
 
 Manifest content
 ```xml
