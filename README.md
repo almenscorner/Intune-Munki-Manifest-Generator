@@ -80,6 +80,10 @@ If more department groups are needed, just add more parameters and add it to the
 - department_X_group_id = ""
 - department_X_manifest_name = ""
 - department_X_members = makeapirequest(group_endpoint + "/" + department_X_group_id + "/members",token)
+- And a for loop to add the ids:
+   for id in department_X_members['value']:
+        deviceId = id['deviceId']
+        department_X_device_ids.append(deviceId)
 
 ## More info
 If want to see the setup step by step, please see this blog post:
