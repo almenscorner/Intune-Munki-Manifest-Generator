@@ -53,7 +53,7 @@ If want to see the setup step by step, please see this blog post:
 LINK
 Release notes:
 Version 1.0: 2021-09-24 - Original published version.
-Many thanks to Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
+Many thanks to journeyofthegeek.com and Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
 
 The script is provided "AS IS" with no warranties.
 """
@@ -155,7 +155,7 @@ def create_plist_blob(local_file_name,connection_instance,container_name,manifes
     except Exception as ex:
         print ("Error: " + str(ex))
 
-#Create dicts and objects
+#Create dicts and lists
 devices = []
 manifest_dict = {}
 
