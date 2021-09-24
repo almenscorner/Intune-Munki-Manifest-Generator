@@ -16,8 +16,7 @@ you have to import the following Python 3 packages:
 - azure_storage_blob
 - msrest
 
-To call the Graph API and get data, create an Azure AD App Registration with the
-follwing app permissions granted:
+To call the Graph API and get data, create an Azure AD App Registration with the follwing app permissions granted:
 - DeviceManagementConfiguration.Read.All
 - DeviceManagementManagedDevices.Read.All
 - DeviceManagementServiceConfig.Read.All
@@ -26,36 +25,33 @@ follwing app permissions granted:
 - GroupMember.Read.All
 You also have to generate a connection string for your storage account.
 
-Update the following parameters with info from your environment:
-- department_1_device_ids = []
-- department_2_device_ids = []
-- department_1_group_id = ""
-- department_2_group_id = ""
-- department_1_manifest_name = ""
-- department_2_manifest_name = ""
+Required parameters to update are the following, add info from your environment:
 - tenantname = ""
 - clientid = "" (from app registration)
 - clientsecret = "" (from app registration)
 - azure_connection_string = ""
 - container_name = "munki" (if your private container is not named munki)
-If more department groups are needed, just add more parameters and add it to the for loop at the end:
-- department_X_device_ids = []
-- department_X_group_id = ""
-- department_X_manifest_name = ""
-- department_X_members = makeapirequest(group_endpoint + "/" + department_X_group_id + "/members",token)
-- And a for loop to add the ids
-   for id in department_X_members['value']:
-        deviceId = id['deviceId']
-        department_X_device_ids.append(deviceId)
+If you have "department" manifests in munki, you can add the Azure AD group ID and manifest name of those in the dictionary below, 
+if left blank only "site_default" will be added. To include additional "departments", just add them to the dictionary with the same format.
+
+department_groups = {
+    "Department1": {
+        "id": "",
+        "name": ""
+    },
+    "Department2": {
+        "id": "",
+        "name":""
+    }
+}
 
 More info:
 If want to see the setup step by step, please see this blog post:
 LINK
 Release notes:
 Version 1.0: 2021-09-24 - Original published version.
-Many thanks to journeyofthegeek.com and Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
+Many thanks to Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
 
-The script is provided "AS IS" with no warranties.
 """
 
 import json
@@ -155,23 +151,47 @@ def create_plist_blob(local_file_name,connection_instance,container_name,manifes
     except Exception as ex:
         print ("Error: " + str(ex))
 
-#Create dicts and lists
+#Get groups the device is a member of
+
+def get_device_memberOf(azureADDeviceId):
+    q_param_device = {"$filter":"deviceId eq " + "'" + azureADDeviceId + "'"}
+    device_object = makeapirequest(device_group_endpoint,token,q_param_device)
+    for id in device_object['value']:
+        objId = id['id']
+        aad_device_objId = objId
+    q_param_group= {"$select":"id"}
+    memberOf = makeapirequest(device_group_endpoint + "/" + aad_device_objId + "/memberOf",token,q_param_group)
+    device_groups = []
+    for group_id in memberOf['value']:
+        id = group_id['id']
+        device_groups.append(id)
+    for k in department_groups.keys():
+        values = department_groups.get(k)
+        if values['id'] in device_groups:
+            print("Device " + data['value'][i]['serialNumber'] + " found in group for " + values['name'] + ", adding included manifest for department")
+            manifest_list.append(values['name'])
+
+#Create dicts and objects
+
 devices = []
 manifest_dict = {}
-
-#Create department objects, set group ids and derpartment names
-department_1_device_ids = []
-department_2_device_ids = []
-department_1_group_id = ""
-department_2_group_id = ""
-department_1_manifest_name = ""
-department_2_manifest_name = ""
+catalogs = ["Production"]
+department_groups = {
+    "Department1": {
+        "id": "",
+        "name": ""
+    },
+    "Department2": {
+        "id": "",
+        "name":""
+    }
+}
 
 #Set Graph parameters
 tenantname = ""
-resource = "https://graph.microsoft.com"
+resource = ""
 endpoint = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices"
-group_endpoint = "https://graph.microsoft.com/v1.0/groups"
+device_group_endpoint = "https://graph.microsoft.com/v1.0/devices"
 clientid = ""
 clientsecret = ""
 q_param = {"$filter":"operatingSystem eq 'macOS'"}
@@ -188,23 +208,16 @@ container_content_list(connection_instance, blob_path)
 #Connect to Graph and get devices and group members
 token = obtain_accesstoken(tenantname,clientid,clientsecret,resource)
 data = makeapirequest(endpoint,token,q_param)
-department_1_members = makeapirequest(group_endpoint + "/" + department_1_group_id + "/members",token)
-department_2_members = makeapirequest(group_endpoint + "/" + department_2_group_id + "/members",token)
-
-for id in department_1_members['value']:
-    deviceId = id['deviceId']
-    department_1_device_ids.append(deviceId)
-
-for id in department_2_members['value']:
-    deviceId = id['deviceId']
-    department_2_device_ids.append(deviceId)
 
 for i in range(0, len(data['value'])):
+    manifest_list = ["site_default"]
     client_dict = {}
     client_dict['deviceName'] = data['value'][i]['deviceName']
     client_dict['serialNumber'] = data['value'][i]['serialNumber']
     client_dict['user'] = data['value'][i]['userPrincipalName']
     client_dict['id'] = data['value'][i]['azureADDeviceId']
+    get_device_memberOf(data['value'][i]['azureADDeviceId'])
+    client_dict['manifest_list'] = manifest_list
     devices.append(client_dict)
 
 for manifest in current_manifests:
@@ -216,16 +229,16 @@ for device in devices:
     else:
         print("Creating manifest for device " + device['serialNumber'])
         manifest_template = {}
-        manifest_template['catalogs'] = ['Production']
-        if device['id'] in department_1_device_ids:
-            print("Device found in group, adding department manifest " + department_1_manifest_name)
-            manifest_template['included_manifests'] = ['site_default', department_1_manifest_name]
-        elif device['id'] in department_2_device_ids:
-            print("Device found in group, adding department manifest " + department_2_manifest_name)
-            manifest_template['included_manifests'] = ['site_default', department_2_manifest_name]
-        else:
-            print("Device not found in any group, only adding included manifest site_default")
-            manifest_template['included_manifests'] = ['site_default']
+        manifest_template['catalogs'] = [catalogs]
+        for name in device['manifest_list']:
+            if name not in manifest_dict:
+                print("Manifest " + name + " not found, skipping")
+                device
+                device['manifest_list'].remove(name)
+        print("adding following included manifests for " + device['serialNumber'] + ":")
+        for manifest in device['manifest_list']:
+            print(manifest)
+        manifest_template['included_manifests'] = device['manifest_list']
         manifest_template['managed_installs'] = []
         manifest_template['optional_installs'] = []
         manifest_template['display_name'] = device['deviceName']
