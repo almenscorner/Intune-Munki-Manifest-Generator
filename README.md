@@ -62,28 +62,28 @@ follwing app permissions granted:
 
 You also have to generate a connection string for your storage account.
 
-Update the following parameters with info from your environment:
-- department_1_device_ids = []
-- department_2_device_ids = []
-- department_1_group_id = ""
-- department_2_group_id = ""
-- department_1_manifest_name = ""
-- department_2_manifest_name = ""
+Required parameters to update are the following, add info from your environment:
 - tenantname = ""
 - clientid = "" (from app registration)
 - clientsecret = "" (from app registration)
 - azure_connection_string = ""
 - container_name = "munki" (if your private container is not named munki)
 
-If more department groups are needed, just add more parameters and add it to the for loop at the end:
-- department_X_device_ids = []
-- department_X_group_id = ""
-- department_X_manifest_name = ""
-- department_X_members = makeapirequest(group_endpoint + "/" + department_X_group_id + "/members",token)
-- And a for loop to add the ids:
-	- for id in department_X_members['value']:
-		- deviceId = id['deviceId']
-		- department_X_device_ids.append(deviceId)
+If you have "department" manifests in munki, you can add the Azure AD group ID and
+manifest name of those in the dictionary below, if left blank only "site_default" will be added.
+To include additional "departments", just add them to the dictionary with the same format.
+```python
+department_groups = {
+    "Department1": {
+        "id": "",
+        "name": ""
+    },
+    "Department2": {
+        "id": "",
+        "name":""
+    }
+}
+```
 
 ## More info
 If want to see the setup step by step, please see this blog post:
