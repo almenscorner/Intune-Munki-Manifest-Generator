@@ -47,7 +47,7 @@ department_groups = {
 
 More info:
 If want to see the setup step by step, please see this blog post:
-LINK
+https://almenscorner.io/munki-what-about-manifests/
 Release notes:
 Version 1.0: 2021-09-24 - Original published version.
 Many thanks to Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
