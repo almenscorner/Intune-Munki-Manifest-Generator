@@ -230,7 +230,7 @@ for device in devices:
     else:
         print("Creating manifest for device " + device['serialNumber'])
         manifest_template = {}
-        manifest_template['catalogs'] = [catalogs]
+        manifest_template['catalogs'] = catalogs
         for name in device['manifest_list']:
             if name not in manifest_dict:
                 print("Manifest " + name + " not found, skipping")
