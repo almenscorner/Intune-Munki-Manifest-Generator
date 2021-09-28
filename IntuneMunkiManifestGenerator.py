@@ -3,7 +3,6 @@
 """
 Author: Tobias Almén (almenscorner.io)
 Script: IntuneMunkiManifestGenerator.py
-
 Description:
 This script is meant to help generate manifests for devices to use with Munki.
 It will generate a manifest with the name of the device serial number and upload
@@ -33,7 +32,6 @@ Required parameters to update are the following, add info from your environment:
 - container_name = "munki" (if your private container is not named munki)
 If you have "department" manifests in munki, you can add the Azure AD group ID and manifest name of those in the dictionary below, 
 if left blank only "site_default" will be added. To include additional "departments", just add them to the dictionary with the same format.
-
 department_groups = {
     "Department1": {
         "id": "",
@@ -48,9 +46,12 @@ department_groups = {
 More info:
 If want to see the setup step by step, please see this blog post:
 https://almenscorner.io/munki-what-about-manifests/
+
 Release notes:
+Version 1.1: 2021-09-28 - The script now checks if included manifests are missing for already created device manifests and adds them.
 Version 1.0: 2021-09-24 - Original published version.
-Many thanks to Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
+
+Many thanks to journeyofthegeek.com and Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
 
 The script is provided "AS IS" with no warranties.
 """
@@ -172,8 +173,34 @@ def get_device_memberOf(azureADDeviceId):
             print("Device " + data['value'][i]['serialNumber'] + " found in group for " + values['name'] + ", adding included manifest for department")
             manifest_list.append(values['name'])
 
-#Create dicts and objects
+#Check if device is missing included manifests and add them if any are missing
 
+def update_plist_blob(remote_file_name,connection_instance,container_name,manifest_template,device):
+    try:
+        local_path = "./"
+        download_file_path = os.path.join(local_path, remote_file_name)
+        blob_service_client = BlobServiceClient.from_connection_string(azure_connection_string)
+        blob_client = blob_service_client.get_blob_client(container=container_name + "/manifests", blob=remote_file_name)
+        with open(download_file_path, "wb") as _f:
+            blob_data = blob_client.download_blob()
+            data = blob_data.readall()
+            plist_data = plistlib.loads(data)
+            add_manifests=[]
+            for manifest in device['manifest_list']:
+                if manifest not in plist_data['included_manifests']:
+                    add_manifests.append(manifest)
+            plistlib.dump(manifest_template, _f)
+
+        if add_manifests:
+            print("Missing included manifests found for " + device['serialNumber'] + " adding them...")          
+            with open(download_file_path, "rb") as data:
+                blob_client.upload_blob(data, overwrite=True)
+                os.remove(download_file_path)
+
+    except Exception as ex:
+        print ("Error: " + str(ex))
+
+#Create dicts and objects
 devices = []
 manifest_dict = {}
 catalogs = ["Production"]
@@ -188,10 +215,12 @@ department_groups = {
     }
 }
 
+
 #Set Graph parameters
 tenantname = ""
-resource = ""
+resource = "https://graph.microsoft.com"
 endpoint = "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices"
+group_endpoint = "https://graph.microsoft.com/v1.0/groups"
 device_group_endpoint = "https://graph.microsoft.com/v1.0/devices"
 clientid = ""
 clientsecret = ""
@@ -226,7 +255,21 @@ for manifest in current_manifests:
 
 for device in devices:
     if device['serialNumber'] in manifest_dict:
-        print("Manifest already exists, skipping device " + device['serialNumber'])
+        manifest_template = {}
+        manifest_template['catalogs'] = catalogs
+        for name in device['manifest_list']:
+            if name not in manifest_dict:
+                print("Manifest " + name + " not found, skipping")
+                device
+                device['manifest_list'].remove(name)
+        manifest_template['included_manifests'] = device['manifest_list']
+        manifest_template['managed_installs'] = []
+        manifest_template['optional_installs'] = []
+        manifest_template['display_name'] = device['deviceName']
+        manifest_template['serialnumber'] = device['serialNumber']
+        manifest_template['user'] = device['user']
+        print("Manifest already exists, skipping manifest creation for device " + device['serialNumber'])
+        update_plist_blob(device['serialNumber'],connection_instance,container_name,manifest_template,device)
     else:
         print("Creating manifest for device " + device['serialNumber'])
         manifest_template = {}
