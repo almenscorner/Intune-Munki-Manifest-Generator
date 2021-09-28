@@ -195,7 +195,7 @@ def update_plist_blob(remote_file_name,connection_instance,container_name,manife
             print("Missing included manifests found for " + device['serialNumber'] + " adding them...")          
             with open(download_file_path, "rb") as data:
                 blob_client.upload_blob(data, overwrite=True)
-                os.remove(download_file_path)
+            os.remove(download_file_path)
 
     except Exception as ex:
         print ("Error: " + str(ex))
