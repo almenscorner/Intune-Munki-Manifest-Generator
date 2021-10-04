@@ -7,14 +7,12 @@ Description:
 This script is meant to help generate manifests for devices to use with Munki.
 It will generate a manifest with the name of the device serial number and upload
 to Azure Storage where the munki repo is.
-
 Configuration:
 I set this up to be run from an Azure Automation Account on a schedule, to do that
 you have to import the following Python 3 packages:
 - azure_core
 - azure_storage_blob
 - msrest
-
 To call the Graph API and get data, create an Azure AD App Registration with the follwing app permissions granted:
 - DeviceManagementConfiguration.Read.All
 - DeviceManagementManagedDevices.Read.All
@@ -23,7 +21,6 @@ To call the Graph API and get data, create an Azure AD App Registration with the
 - Group.Read.All
 - GroupMember.Read.All
 You also have to generate a connection string for your storage account.
-
 Required parameters to update are the following, add info from your environment:
 - tenantname = ""
 - clientid = "" (from app registration)
@@ -42,17 +39,13 @@ department_groups = {
         "name":""
     }
 }
-
 More info:
 If want to see the setup step by step, please see this blog post:
 https://almenscorner.io/munki-what-about-manifests/
-
 Release notes:
 Version 1.1: 2021-09-28 - The script now checks if included manifests are missing for already created device manifests and adds them.
 Version 1.0: 2021-09-24 - Original published version.
-
 Many thanks to journeyofthegeek.com and Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
-
 The script is provided "AS IS" with no warranties.
 """
 
@@ -170,8 +163,11 @@ def get_device_memberOf(azureADDeviceId):
     for k in department_groups.keys():
         values = department_groups.get(k)
         if values['id'] in device_groups:
-            print("Device " + data['value'][i]['serialNumber'] + " found in group for " + values['name'] + ", adding included manifest for department")
-            manifest_list.append(values['name'])
+            if values['name'] in manifest_dict:
+                print("Device found in group for " + values['name'] + ", adding included manifest for department")
+                device['manifest_list'].append(values['name'])
+            else:
+                print("Device found in group for " + (values['name']) + " but manifest does not exist, skipping")
 
 #Check if device is missing included manifests and add them if any are missing
 
@@ -189,10 +185,14 @@ def update_plist_blob(remote_file_name,connection_instance,container_name,manife
             for manifest in device['manifest_list']:
                 if manifest not in plist_data['included_manifests']:
                     add_manifests.append(manifest)
+                if manifest not in manifest_dict:
+                    print("Manifest " + manifest + " not found, skipping")
+                    device['manifest_list'].remove(manifest)
+                    add_manifests.remove(manifest)
             plistlib.dump(manifest_template, _f)
 
         if add_manifests:
-            print("Missing included manifests found for " + device['serialNumber'] + " adding them...")          
+            print("Missing included manifests found adding them...")         
             with open(download_file_path, "rb") as data:
                 blob_client.upload_blob(data, overwrite=True)
             os.remove(download_file_path)
@@ -214,7 +214,6 @@ department_groups = {
         "name":""
     }
 }
-
 
 #Set Graph parameters
 tenantname = ""
@@ -246,7 +245,6 @@ for i in range(0, len(data['value'])):
     client_dict['serialNumber'] = data['value'][i]['serialNumber']
     client_dict['user'] = data['value'][i]['userPrincipalName']
     client_dict['id'] = data['value'][i]['azureADDeviceId']
-    get_device_memberOf(data['value'][i]['azureADDeviceId'])
     client_dict['manifest_list'] = manifest_list
     devices.append(client_dict)
 
@@ -255,12 +253,13 @@ for manifest in current_manifests:
 
 for device in devices:
     if device['serialNumber'] in manifest_dict:
+        print("-" * 42 + device['serialNumber'] +  "-" * 42)
+        get_device_memberOf(device['id'])
         manifest_template = {}
         manifest_template['catalogs'] = catalogs
         for name in device['manifest_list']:
             if name not in manifest_dict:
                 print("Manifest " + name + " not found, skipping")
-                device
                 device['manifest_list'].remove(name)
         manifest_template['included_manifests'] = device['manifest_list']
         manifest_template['managed_installs'] = []
@@ -268,18 +267,20 @@ for device in devices:
         manifest_template['display_name'] = device['deviceName']
         manifest_template['serialnumber'] = device['serialNumber']
         manifest_template['user'] = device['user']
-        print("Manifest already exists, skipping manifest creation for device " + device['serialNumber'])
+        print("Manifest already exists, skipping manifest creation")
         update_plist_blob(device['serialNumber'],connection_instance,container_name,manifest_template,device)
+        print("-" * 96)
     else:
-        print("Creating manifest for device " + device['serialNumber'])
+        print("-" * 42 + device['serialNumber'] +  "-" * 42)
+        get_device_memberOf(device['id'])
+        print("Creating manifest for device")
         manifest_template = {}
         manifest_template['catalogs'] = catalogs
         for name in device['manifest_list']:
             if name not in manifest_dict:
                 print("Manifest " + name + " not found, skipping")
-                device
                 device['manifest_list'].remove(name)
-        print("adding following included manifests for " + device['serialNumber'] + ":")
+        print("adding following included manifests:")
         for manifest in device['manifest_list']:
             print(manifest)
         manifest_template['included_manifests'] = device['manifest_list']
@@ -289,3 +290,4 @@ for device in devices:
         manifest_template['serialnumber'] = device['serialNumber']
         manifest_template['user'] = device['user']
         create_plist_blob(device['serialNumber'],connection_instance,container_name,manifest_template)
+        print("-" * 96)
