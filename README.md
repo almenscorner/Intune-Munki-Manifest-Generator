@@ -91,11 +91,15 @@ department_groups = {
 
 ## More info
 If want to see the setup step by step, please see this blog post:
+
 https://almenscorner.io/munki-what-about-manifests/
 
 Release notes:
+
 Version 1.2: 2021-10-04 - Improvements in department group handling and clearer output per device.
+
 Version 1.1: 2021-09-28 - The script now checks if included manifests are missing for already created device manifests and adds them.
+
 Version 1.0: 2021-09-24 - Original published version.
 
 Many thanks to journeyofthegeek.com and Shashank Mishra for many of the defs and jbaker10 for the original idea of manifest generation.
