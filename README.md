@@ -4,11 +4,11 @@ A Python helper to generate Munki manifests for devices managed in Intune
 ## Example run output
 Azure Automation Output
 
-![Screenshot 2021-09-24 at 14 26 37](https://user-images.githubusercontent.com/78877636/134675584-1ce3a8a7-4c66-4e79-bf02-6225a40fcb7d.png)
+![Screenshot 2021-10-04 at 09 32 09](https://user-images.githubusercontent.com/78877636/135811840-a0ac825f-8f9a-4447-a674-e7dc28b1b077.png)
 
 If a manifest is not found in the repository it will be skipped
 
-![Screenshot 2021-09-24 at 14 29 22](https://user-images.githubusercontent.com/78877636/134675636-b2bed091-178e-48e5-b2ca-67970798bc6c.png)
+![Screenshot 2021-10-04 at 09 33 53](https://user-images.githubusercontent.com/78877636/135811873-90745b1f-588f-4342-b477-48f14da28810.png)
 
 Repository manifests
 
@@ -94,6 +94,7 @@ If want to see the setup step by step, please see this blog post:
 https://almenscorner.io/munki-what-about-manifests/
 
 Release notes:
+Version 1.2: 2021-10-04 - Improvements in department group handling and clearer output per device.
 Version 1.1: 2021-09-28 - The script now checks if included manifests are missing for already created device manifests and adds them.
 Version 1.0: 2021-09-24 - Original published version.
 
