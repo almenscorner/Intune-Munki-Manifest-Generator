@@ -96,6 +96,10 @@ https://almenscorner.io/munki-what-about-manifests/
 
 Release notes:
 
+Version 1.3: 2021-12-06 - Added check for null AAD device ID, removal of department manifest if device is no longer in group and
+removal of manifest if device is no longer in Intune. If you want to do this, un-comment line 300. Run one time first and check output 
+to make sure manifests that should not be deleted are touched.
+
 Version 1.2: 2021-10-04 - Improvements in department group handling and clearer output per device.
 
 Version 1.1: 2021-09-28 - The script now checks if included manifests are missing for already created device manifests and adds them.
